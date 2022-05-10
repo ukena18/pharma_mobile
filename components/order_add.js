@@ -1,35 +1,64 @@
-import React, {useState} from 'react';
+import React, {useState,useEffect} from 'react';
 import {Text,View, StyleSheet, TextInput,Button, TouchableOpacity} from 'react-native';
 import Checkbox from 'expo-checkbox';
 import {Picker} from '@react-native-picker/picker';
 
-function Order_add() {
-    const [name,setName] = useState(null)
-    const  [last,setLast] = useState(null)
+
+function Order_add({navigation,route}) {
     const [description,setDescription] = useState(null)
     const [price,setPrice] = useState(null)
     const [is_paid,setIsPaid] = useState(false)
     const [who_paid,setWhoPaid] = useState(null)
     const [payment_method,setPaymentMethod] = useState(null)
+    let {accessToken,profile_name,profile_last,pk,customer} = route.params
+    
     const submitHandler = () => {
         console.log("hello world")
     }
+
+      // send order to bacend 
+      const order_add_api = async () => {
+        const response = await fetch(`http://192.168.1.146:8000/api/order_add/${pk}`,{
+            method:'POST',
+            headers:{
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${accessToken}`,  
+                },
+            body: JSON.stringify({description:description,
+                    price:price,
+                    is_paid:is_paid,
+                    who_paid:who_paid,
+                    payment_method:payment_method,
+                    
+        }),
+        })
+        const data = await response.json()
+        if(response.status === 200){
+           console.log("order has been added")
+           navigation.navigate("Profile",{
+               pk:pk,
+           })
+            
+        }else{
+            console.log("somethin went wrong status is not 200 ")
+        }
+    }
+    useEffect(()=>{
+        
+       
+    },[])
     return (
         
             
             <View style={styles.container}>
                 <Text>Name :</Text>
-                <TextInput
-                style={styles.input}
-                maxLength={30}
-                onChangeText={(val)=>setName(val)}
-                />
+                <Text style={styles.input}>
+                    {profile_name}
+                </Text>
                 <Text>Last :</Text>
-                <TextInput
-                style={styles.input}
-                maxLength={30}
-                onChangeText={(val)=>setLast(val)}
-                />
+                <Text style={styles.input}>
+                    {profile_last}
+                </Text>
                 <Text>Description :</Text>
                 <TextInput
                 style={styles.input}
@@ -57,8 +86,9 @@ function Order_add() {
                         onValueChange={(itemValue, itemIndex) =>
                             setWhoPaid(itemValue)
                         }>
-                        <Picker.Item label="Customer" value="customer" />
-                        <Picker.Item label="Parent" value="parent" />
+                        <Picker.Item label="NaN" value="NaN" />
+                        <Picker.Item label="Customer" value={customer.id} />
+                        <Picker.Item label="Parent" value={customer.parent} />
                     </Picker>
                 </View>
                 <Text>Method :</Text>
@@ -69,12 +99,12 @@ function Order_add() {
                         onValueChange={(itemValue, itemIndex) =>{
                                 setPaymentMethod(itemValue)  
                         }}>
-                        
+                        <Picker.Item style={styles.itemStyle} label="NAN" value="NaN" />
                         <Picker.Item style={styles.itemStyle} label="CASH" value="CASH" />
                         <Picker.Item style={styles.itemStyle}  label="CARD" value="CARD" />
                     </Picker>
                 </View>
-            <TouchableOpacity style={styles.buttonContainer}  >
+            <TouchableOpacity style={styles.buttonContainer}  onPress={order_add_api}>
                 <Text style={styles.buttonText}>Order Add</Text>
             </TouchableOpacity>
             </View>

@@ -23,8 +23,9 @@ export default function HomeStack() {
         headerShown:false,
       }}
       >
+        <Stack.Screen name="Profile" component={Profile}  initialParams={{ pk:37 }} />
         <Stack.Screen name="Homepage" component={Homepage}/>
-        <Stack.Screen name="Profile" component={Profile}  />
+        
         <Stack.Screen name="Person_add" component={Person_add}  />
         <Stack.Screen name="Search" component={Search}  />
         <Stack.Screen name="Order_add" component={Order_add}  />

@@ -40,8 +40,8 @@ export const AuthProvider = ({children})=>{
 
     const storeData = async (value) => {
         try {
-          const jsonValue = JSON.stringify(value)
-          await AsyncStorage.setItem('@storage_Key', jsonValue)
+         
+          await AsyncStorage.setItem('@storage_Key', value)
         } catch (e) {
           // saving error
         }
@@ -50,7 +50,6 @@ export const AuthProvider = ({children})=>{
       const getData = async () => {
         try {
           const jsonValue = await AsyncStorage.getItem('@storage_Key')
-    
            return jsonValue != null ? JSON.parse(jsonValue) : null
         } catch(e) {
           // error reading value

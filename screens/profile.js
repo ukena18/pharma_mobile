@@ -1,30 +1,108 @@
-import React, {useState, useContext} from 'react';
-import {Text,View, StyleSheet,TouchableOpacity, Modal } from 'react-native';
+import React, {useState, useEffect,useContext} from 'react';
+import {Text,View, StyleSheet,TouchableOpacity, Modal,FlatList } from 'react-native';
 import Name_change from '../components/name_change';
 import History_modal from '../components/tra_history';
-
 import ModalContext from '../authContext/modalContext';
+import AuthContext from '../authContext/authContext';
 
 
-function Profile({navigation}) {
+function Profile({navigation,route}) {
     let { change_visiblity, change_visiblity_history} = useContext(ModalContext);
+    let {getData} = useContext(AuthContext)
+    let { pk } = route.params;
+    const [parent_id,setParentId] = useState(0);
+    const [accessToken,setAccessToken] = useState(null);
+    const [customer,setCutomer] = useState(null)
+    const [orders,setOrders] = useState(null)
+    const [children,setChildren] = useState(null)
+    const Profile_call = async () => {
+        const response = await fetch(`http://192.168.1.146:8000/api/profile/${pk}`,{
+            method:'GET',
+            headers:{
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${accessToken}`,  
+                }  ,
+        })
+        const data = await response.json()
+        if(response.status === 200){
+            setCutomer(data?.customer)
+            setOrders(data?.orders)
+            setChildren(data?.children)
+            
+            setParentId(parseInt(data?.customer?.parent))
+            
+        }else{
+            console.log("somethin went wrong status is not 200 ")
+        }
+    }
     
+    let get_access_token = async ()=>{
+        tokens = await getData()
+        setAccessToken(tokens.access)
+       
+     }
 
+     const most_recent_orders_compononets = ({item})=>{
+        return (
+            <TouchableOpacity style={styles.listItemTouch}>
+            <View style={styles.listItem} key={item.id}>
+            
+                <TouchableOpacity style={[styles.itemColumn,styles.smallShow]} onPress={()=>navigation.navigate("Profile")}>
+                    <Text>{item.customer.id}</Text>
+                </TouchableOpacity>
+                <Text style={styles.itemColumn}>{item.customer.name} {item.customer.last}</Text>
+                <Text style={styles.itemColumn}>{item.description}</Text>
+                <Text style={[styles.itemColumn,styles.smallShow]}>{item.price} $</Text>               
+            </View>
+        </TouchableOpacity>
+        )
+    }
+    const all_dependents = ({item})=>{
+        return (
+            <TouchableOpacity style={styles.listItemTouch}>
+            <View style={styles.listItem} key={item.id}>
+            
+                <TouchableOpacity style={[styles.itemColumn,styles.smallShow]} onPress={()=>navigation.navigate("Profile")}>
+                    <Text>{item.customer.id}</Text>
+                </TouchableOpacity>
+                <Text style={styles.itemColumn}>{item.name} {item.last}</Text>
+                <Text style={[styles.itemColumn,styles.smallShow]}>{item.total} $</Text>               
+            </View>
+        </TouchableOpacity>
+        )
+    }
+     
+
+    
+    useEffect(()=>{
+        get_access_token()    
+        },[])
+    useEffect(()=>{
+           Profile_call()   
+            },[accessToken])
+    
   return (
-   
+    <View style={styles.container}>
+    {customer ? 
     <View style={styles.container}>
         <View style={styles.topOptions}> 
             <View style={styles.customerInfo}>
-                <Text style={styles.infoText}>123124</Text>
-                <Text style={styles.infoText}>Azra Zelal</Text>
+                <Text style={styles.infoText}>{pk}</Text>
+                <Text style={styles.infoText}>{customer?.name} {customer?.last}</Text>
                 <Text style={styles.infoText}>PArent: <TouchableOpacity >
-                                <Text style={styles.infoText}>124124</Text>
+                                <Text style={styles.infoText}>{parent_id ? parent_id :"No Parent"}</Text>
                 </TouchableOpacity>
                 
                 </Text>
             </View>
             <View> 
-                <TouchableOpacity style={styles.buttonContainer} onPress={()=>navigation.navigate("Order_add")}>
+                <TouchableOpacity style={styles.buttonContainer} onPress={()=>navigation.navigate("Order_add",{
+                    pk:pk,
+                    profile_name:customer?.name,
+                    profile_last:customer?.last,
+                    accessToken:accessToken,
+                    customer:customer,
+                })}>
                                 <Text>Add order</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.buttonContainer} onPress={change_visiblity}>
@@ -32,64 +110,36 @@ function Profile({navigation}) {
                 </TouchableOpacity>
             </View>
         </View>
-        <Name_change />
+        <Name_change name={customer.name} last={customer.last} parent_id={parent_id} pk={pk}/>
         <View style={styles.sectionContainer}>
                 <Text style={styles.sectionTitle}> Most Recent Transaction</Text>
+                <FlatList
+                data = {orders}
+                keyExtractor={item => item.id}
+                renderItem = {most_recent_orders_compononets}
+                />
 
-                <TouchableOpacity style={styles.listItemTouch}>
-                    <View style={styles.listItem}>
-                    
-                        <TouchableOpacity style={[styles.itemColumn,styles.smallShow]}>
-                            <Text>123124</Text>
-                        </TouchableOpacity>
-                        <Text style={styles.itemColumn}>Ruken Turgut aise</Text>
-                        <Text style={styles.itemColumn}>Description</Text>
-                        <Text style={[styles.itemColumn,styles.smallShow]}>23 $</Text>               
-                    </View>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.listItemTouch}>
-                    <View style={styles.listItem}>
-                        <TouchableOpacity style={[styles.itemColumn,styles.smallShow]}>
-                            <Text>123124</Text>
-                        </TouchableOpacity>
-                        <Text style={styles.itemColumn}>Ruken Turgut aise</Text>
-                        <Text style={styles.itemColumn}>Description</Text>
-                        <Text style={[styles.itemColumn,styles.smallShow]}>23 $</Text>               
-                    </View>
-                </TouchableOpacity>
+                
         </View>
         <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>All Dependents</Text>
-            <TouchableOpacity style={styles.listItemTouch}>
-                    <View style={styles.listItem}>
-                    
-                        <TouchableOpacity style={[styles.itemColumn,styles.smallShow]}>
-                            <Text>123124</Text>
-                        </TouchableOpacity>
-                        <Text style={styles.itemColumn}>Ruken Turgut aise</Text>
-                
-                        <Text style={[styles.itemColumn,styles.smallShow]}>23 $</Text>               
-                    </View>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.listItemTouch}>
-                    <View style={styles.listItem}>
-                    
-                        <TouchableOpacity style={[styles.itemColumn,styles.smallShow]}>
-                            <Text>123124</Text>
-                        </TouchableOpacity>
-                        <Text style={styles.itemColumn}>Ruken Turgut aise</Text>
-                        <Text style={[styles.itemColumn,styles.smallShow]}>23 $</Text>               
-                    </View>
-            </TouchableOpacity>
+            
+            <FlatList
+                data = {children}
+                keyExtractor={item => item.id}
+                renderItem = {all_dependents}
+                />
         </View>
         <View style={styles.moneyInfo}>
             <Text>Total amount:</Text>
-            <Text>54.78$ </Text>
+            <Text>{customer.total}$ </Text>
         </View>
         <TouchableOpacity style={[styles.buttonContainer,styles.transactionButton]}  onPress={change_visiblity_history}>
                 <Text>Transaction History</Text>
         </TouchableOpacity>
-        <History_modal/>
+        <History_modal orders={orders}/>
+    </View>
+     : <Text>Loading ...</Text>}
     </View>
  
   )

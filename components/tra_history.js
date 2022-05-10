@@ -1,29 +1,24 @@
 import React, {useState,useContext} from 'react';
-import {Text, StyleSheet, TextInput,Modal,View, TouchableOpacity} from 'react-native';
+import {Text, StyleSheet, FlatList,Modal,View, TouchableOpacity} from 'react-native';
 import ModalContext from '../authContext/modalContext';
 
-const Card = (is_visible)=>{
-    if (is_visible){
-        is_visible = false;
-    }else{
-        is_visible = true;
-    }
-    return (<View>
-                {is_visible &&  <View style={styles.listItem}>
-                            <TouchableOpacity style={[styles.itemColumn,styles.smallShow]}>
-                                <Text>123124</Text>
-                            </TouchableOpacity>
-                            <Text style={styles.itemColumn}>Ruken Turgut aise</Text>
-                            <Text style={styles.itemColumn}>Description</Text>
-                            <Text style={styles.itemColumn}>12/43/56</Text>
-                            <Text style={styles.itemColumn}>I paid</Text>
-                            <Text style={[styles.itemColumn,styles.smallShow]}>23 $</Text>           
-                </View>}
+const transaction_history = ({item})=>{
+    return (
+        <TouchableOpacity style={styles.listItemTouch}>
+        <View style={styles.listItem} key={item.id}>
+        
+            <TouchableOpacity style={[styles.itemColumn,styles.smallShow]} onPress={()=>navigation.navigate("Profile")}>
+                <Text>{item.customer.id}</Text>
+            </TouchableOpacity>
+            <Text style={styles.itemColumn}>{item.date_created} </Text>
+            <Text style={styles.itemColumn}>{item.customer.name} {item.customer.last}</Text>
+            <Text style={[styles.itemColumn,styles.smallShow]}>{item.price} $</Text>               
         </View>
+    </TouchableOpacity>
     )
 }
 
-function History_modal() {
+function History_modal({orders}) {
     let {historyVisible, change_visiblity_history} = useContext(ModalContext)
     const [name,setName] = useState(null)
     const [last,setLast] = useState(null)
@@ -38,18 +33,11 @@ function History_modal() {
             <View style={styles.container}>
                 
             <Text style={styles.sectionTitle}>All Transactions</Text>
-
-            <TouchableOpacity>
-                <View style={styles.listItem}>
-                    
-                    <TouchableOpacity style={[styles.itemColumn,styles.smallShow]}>
-                        <Text>123124</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.itemColumn}>Ruken Turgut aise</Text>
-                    <Text style={styles.itemColumn}>12/43/56</Text>
-                    <Text style={[styles.itemColumn,styles.smallShow]}>23 $</Text>               
-                </View>
-            </TouchableOpacity>
+            <FlatList
+                data = {orders}
+                keyExtractor={item => item.id}
+                renderItem = {transaction_history}
+                />
             <TouchableOpacity style={styles.buttonContainer}  onPress={change_visiblity_history}>
                 <Text style={styles.buttonText}>Go Back</Text>
             </TouchableOpacity>

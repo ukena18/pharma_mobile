@@ -1,43 +1,75 @@
-import React, {useState,useContext} from 'react';
+import React, {useState,useContext,useEffect} from 'react';
 import {Text, StyleSheet, TextInput,Modal,View, TouchableOpacity} from 'react-native';
 import ModalContext from '../authContext/modalContext';
 
-function Name_change() {
+function Name_change({name,last,parent_id,pk}) {
     let {modalVisible, change_visiblity} = useContext(ModalContext)
-    const [name,setName] = useState(null)
-    const [last,setLast] = useState(null)
-    const [parentId,setParentId] = useState(null)
-    const submitHandler = () => {
-    }
-    return (          
-            <Modal 
+    const [form_name,setFormName] = useState(null)
+    const [form_last,setFormLast] = useState(null)
+    const [form_parentId,setFormParentId] = useState(null)
+    const [isLoaded,setIsLoaded] = useState(false)
+
+    const name_change_api = async () => {
+        const response = await fetch(`http://192.168.1.146:8000/api/name_change/`,{
+            method:'POST',
+            headers:{
+                    "Content-Type": "application/json",
+                   
+                },
+            body: JSON.stringify({"name":form_name,"last":form_last,"parent_id":form_parentId,"pk":pk})
+        })
+        const data = await response.json()
+        if(response.status === 200){
+            change_visiblity()
+            
+            
+        }else{
+            console.log("somethin went wrong status is not 200 ")
+        }
+    }    
+    
+    useEffect(()=>{
+        setFormName(name)
+        setFormLast(last)
+        if (parent_id>1){
+            setFormParentId(parent_id)
+        }
+        setIsLoaded(true)
+        
+    },[])
+    return ( <View>
+            {isLoaded && <Modal 
             visible={modalVisible}
             animationType="fade"
             >
                 <View style={styles.container}>
                 <Text style={styles.label}>Name :</Text>
                 <TextInput
+                value={form_name}
                 style={styles.input}
                 maxLength={30}
-                onChangeText={(val)=>setName(val)}
+                onChangeText={(val)=>setFormName(val)}
                 />
                 <Text style={styles.label}>Last :</Text>
                 <TextInput
+                value={form_last}
                 style={styles.input}
                 maxLength={30}
-                onChangeText={(val)=>setLast(val)}
+                onChangeText={(val)=>setFormLast(val)}
                 />
                 <Text style={styles.label}>PArent id :</Text>
                 <TextInput
+                value={form_parentId}
                 style={styles.input}
                 maxLength={50}
-                onChangeText={(val)=>setParentId(val)}
+                onChangeText={(val)=>setFormParentId(val)}
                 />
-            <TouchableOpacity style={styles.buttonContainer}  onPress={change_visiblity} >
+            <TouchableOpacity style={styles.buttonContainer}  onPress={name_change_api} >
                 <Text style={styles.buttonText}>NAme Change</Text>
             </TouchableOpacity>
             </View>
-            </Modal>
+            </Modal>}
+            </View>      
     
     )
     }

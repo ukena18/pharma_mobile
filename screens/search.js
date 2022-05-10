@@ -1,18 +1,37 @@
-import React,{useState} from 'react';
+import React,{useState,useEffect} from 'react';
 import {Text,View, StyleSheet, TextInput,Keyboard,TouchableWithoutFeedback, TouchableOpacity, FlatList} from 'react-native';
+
 
 
 function Search() {
     const [name,setName] = useState(null);
-    const [people,setPeople] = useState([
-        {name:"john",last:'doe', key:"1"},
-        {name:"ali",last:'asdf', key:"2"},
-        {name:"Recep",last:'vcz',key:"3"},
-        {name:"ramazan",last:'donome onee',key:"4"},
-    ]);
+    const [people,setPeople] = useState([]);
+    const [isLoaded,setIsLoaded] = useState(false)
+    const search_api = async () => {
+        const response = await fetch(`http://192.168.1.146:8000/api/search/`,{
+            method:'GET',
+            headers:{
+                    "Content-Type": "application/json",
+                },
+            
+        })
+        const data = await response.json()
+        if(response.status === 200){
+          setPeople(data?.customers)
+          
+            
+        }else{
+            console.log("somethin went wrong status is not 200 ")
+        }
+    }
+    useEffect(()=>{
+        search_api()
+        setIsLoaded(true)
+    },[])
 
   return (
       <TouchableWithoutFeedback onPress={Keyboard.dismiss()}>
+    {isLoaded ?
     <View style={styles.container}>
         <View style={styles.searchForm}>
             <TextInput
@@ -26,7 +45,14 @@ function Search() {
         </View>
         <View style={styles.customersContainer}>
             <FlatList
-            data={people}
+            data={people.filter(person=>{
+                if(name=="" || name==null ){
+                    return person
+                }else{
+                    return person.name.includes(name)
+                }
+                
+            })}
             renderItem={({item}) =>(
                 <View>
                     <TouchableOpacity>
@@ -37,8 +63,12 @@ function Search() {
             />
 
         </View>
+    
     </View>
+:<View><Text>Loading ...</Text></View>}
+    
     </TouchableWithoutFeedback>
+
   )
 }
 

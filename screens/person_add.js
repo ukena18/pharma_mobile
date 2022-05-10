@@ -29,19 +29,18 @@ function Person_add({navigation}) {
         })
         const data = await response.json()
         if(response.status === 200){
-            navigation.navigate("Profile")  
+            console.log(data)
+            navigation.navigate("Profile",{
+                pk: data.id,
+            })  
         }else{
             console.log("somethin went wrong status is not 200 ")
         }
     }
 
-    const submitHandler = () => {
-        AddUser()
-    }
 
     useEffect(()=>{
         checkUser()
-        submitHandler()
     },[])
    
     return (          
@@ -71,7 +70,7 @@ function Person_add({navigation}) {
                 maxLength={30}
                 onChangeText={(val)=>setPrice(val)}
                 />    
-            <TouchableOpacity style={styles.buttonContainer}  >
+            <TouchableOpacity style={styles.buttonContainer} onPress={()=>AddUser()}  >
                 <Text style={styles.buttonText}>Person Add</Text>
             </TouchableOpacity>
             </View>
